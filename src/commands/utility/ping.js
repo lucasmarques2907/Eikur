@@ -10,13 +10,9 @@ module.exports = {
       content: "Pinging...",
       fetchReply: true,
     });
-    await wait(2_000);
+    // await wait(2_000);
     await interaction.editReply({
         content: `Pong! (${sent.createdTimestamp - interaction.createdTimestamp}ms)`,
     });
-    // await interaction.followUp({
-    //   content: `[teste](https://google.com)`,
-    //   ephemeral: true,
-    // });
   },
 };
