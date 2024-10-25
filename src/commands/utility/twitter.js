@@ -3,26 +3,26 @@ const wait = require("node:timers/promises").setTimeout;
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("ig")
-    .setDescription("Arruma os embeds do instagram")
+    .setName("tw")
+    .setDescription("Arruma os embeds do twitter")
     .addStringOption((option) =>
       option
         .setName("link")
-        .setDescription("link da postagem no instagram (pode ser reels também)")
+        .setDescription("link da postagem no twitter")
         .setRequired(true)
     ),
   async execute(interaction) {
     let input = interaction.options.getString("link");
-    let isInstagramLink = /https?:\/\/(www\.)?instagram\.com/.test(input);
+    let isTwitterLink = /https?:\/\/(www\.)?x\.com/.test(input);
 
-    if (isInstagramLink) {
-      input = input.replace("instagram", "ddinstagram");
+    if (isTwitterLink) {
+      input = input.replace("x", "fixupx");
       await interaction.deferReply();
       await wait(1_000);
       await interaction.editReply({
         content: input,
       });
-    } else if (/https?:\/\/(www\.)?ddinstagram\.com/.test(input)) {
+    } else if (/https?:\/\/(www\.)?fixupx\.com/.test(input)) {
       await interaction.reply({
         content: "Esse link já tá arrumado seu animal",
       });
@@ -34,7 +34,7 @@ module.exports = {
     }
     else {
       await interaction.reply({
-        content: "Link inválido, confira se o link informado é do instagram",
+        content: "Link inválido, confira se o link informado é do twitter",
       });
     }
   },
