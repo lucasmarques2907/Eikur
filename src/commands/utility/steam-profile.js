@@ -1,4 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require("dotenv").config();
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -58,7 +60,9 @@ module.exports = {
         }
 
         // Processar o HTML para Markdown
-        let summary = data["summary"]["raw"]
+        let summary = data["summary"]["raw"] || "N/A"; // Define "N/A" se o resumo estiver vazio
+
+        summary = summary
           .replace(/<br\/?>/g, "\n") // Substituir <br> por quebras de linha
           .replace(/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/g, "[$2]($1)") // Converter links para Markdown
           .replace(/<div class="bb_h1">(.*?)<\/div>/g, "**$1**\n") // Destacar e adicionar quebra de linha para bb_h1
@@ -89,46 +93,42 @@ module.exports = {
         let achievements;
 
         if (data["recent_activity"] != null) {
-          if (data["recent_activity"]["games"][0]["name"]) {
-            achievements =
-              `${data?.recent_activity?.games?.[0]?.achievement_progress?.completed?.value}/${data?.recent_activity?.games?.[0]?.achievement_progress?.total?.value}` ??
-              "N/A";
+          data["recent_activity"]["games"]
+            .slice(0, 3)
+            .forEach((game, index) => {
+              if (game["name"]) {
+                achievements = game["achievement_progress"]
+                  ? `${game.achievement_progress.completed.value}/${game.achievement_progress.total.value}`
+                  : "N/A";
 
-            steamEmbed.addFields({
-              name: data["recent_activity"]["games"][0]["name"],
-              value: `**[Link do jogo](${data["recent_activity"]["games"]["0"]["url"]})**\nAchievements: **${achievements}**\nTempo de jogo: **${data["recent_activity"]["games"]["0"]["hours"]["value"]} horas**\nJogado pela última vez em **${data["recent_activity"]["games"]["0"]["last_played"]}**`,
+                steamEmbed.addFields({
+                  name: game["name"],
+                  value: `**[Link do jogo](${game["url"]})**\nAchievements: **${achievements}**\nTempo de jogo: **${game["hours"]["value"]} horas**\nJogado pela última vez em **${game["last_played"]}**`,
+                });
+              }
             });
-          }
-
-          if (data["recent_activity"]["games"][1]["name"]) {
-            achievements =
-              `${data?.recent_activity?.games?.[1]?.achievement_progress?.completed?.value}/${data?.recent_activity?.games?.[1]?.achievement_progress?.total?.value}` ??
-              "N/A";
-
-            steamEmbed.addFields({
-              name: data["recent_activity"]["games"][1]["name"],
-              value: `**[Link do jogo](${data["recent_activity"]["games"]["1"]["url"]})**\nAchievements: **${achievements}**\nTempo de jogo: **${data["recent_activity"]["games"]["1"]["hours"]["value"]} horas**\nJogado pela última vez em **${data["recent_activity"]["games"]["1"]["last_played"]}**`,
-            });
-          }
-
-          if (data["recent_activity"]["games"][2]["name"]) {
-            achievements =
-              `${data?.recent_activity?.games?.[2]?.achievement_progress?.completed?.value}/${data?.recent_activity?.games?.[2]?.achievement_progress?.total?.value}` ??
-              "N/A";
-
-            steamEmbed.addFields({
-              name: data["recent_activity"]["games"][2]["name"],
-              value: `**[Link do jogo](${data["recent_activity"]["games"]["2"]["url"]})**\nAchievements: **${achievements}**\nTempo de jogo: **${data["recent_activity"]["games"]["2"]["hours"]["value"]} horas**\nJogado pela última vez em **${data["recent_activity"]["games"]["2"]["last_played"]}**`,
-            });
-          }
         }
 
         const banComunidade = data?.bans?.community ? "Sim" : "Não";
         const banJogos =
           data?.bans?.game === "none" ? "Nenhum" : data?.bans?.game;
         const banTrocas = data?.bans?.trade ? "Sim" : "Não";
-        const banVac = data?.bans?.vac === "none" ? "Nenhum" : data?.bans?.vac;
-        const ultimoBan = data?.bans?.days_since_last ?? "Ainda não tomou";
+        let banVac = data?.bans?.vac === "none" ? "Nenhum" : data?.bans?.vac;
+        const ultimoBan =
+          data?.bans?.days_since_last?.value != null
+            ? `${data.bans.days_since_last.value} dias`
+            : "Ainda não tomou";
+
+        if (banVac != "Nenhum") {
+          const genAI = new GoogleGenerativeAI(process.env.AI_STUDIO_API_KEY);
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+          banVac = (
+            await model.generateContent([
+              `responda apenas o número: transforme ${banVac}" em um inteiro`,
+            ])
+          ).response.text().trim();
+        }
 
         const jogos = data?.counts?.games?.value ?? "N/A";
         const amigos = data?.counts?.friends?.value ?? "N/A";
@@ -154,10 +154,10 @@ module.exports = {
         });
       }
     } catch (error) {
+      console.error(error);
       return interaction.editReply({
         content:
-          "Verifique se o id informado está correto e tente novamente\nSe o erro persistir contate o desenvolvedor burro -> <@337484547484549123>\n" +
-          error,
+          "Verifique se o id informado está correto e tente novamente\nSe o erro persistir contate o desenvolvedor burro -> <@337484547484549123>\n",
       });
     }
   },
