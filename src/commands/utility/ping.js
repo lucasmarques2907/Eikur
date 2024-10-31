@@ -10,7 +10,6 @@ module.exports = {
       content: "Pinging...",
       fetchReply: true,
     });
-    // await wait(2_000);
     await interaction.editReply({
         content: `Pong! (${sent.createdTimestamp - interaction.createdTimestamp}ms)`,
     });
