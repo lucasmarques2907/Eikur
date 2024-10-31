@@ -4,7 +4,7 @@ const axios = require("axios");
 //api key: f0ee0f5c122a494490543124241509
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("clima")
+    .setName("weather")
     .setDescription("Informa o clima na cidade informada")
     .addStringOption((option) =>
       option
