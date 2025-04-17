@@ -32,7 +32,9 @@ module.exports = {
       "no reason to live",
       "i don't wanna live",
       "not worth living",
-      "life has no meaning"
+      "life has no meaning",
+      "it's over",
+      "its over",
     ];
 
     // Gatilhos em português
@@ -60,12 +62,13 @@ module.exports = {
       "perdi a vontade de viver",
       "queria desaparecer",
       "desejo a morte",
-      "tenho vontade de morrer"
+      "tenho vontade de morrer",
+      "vou falecer",
     ];
 
     const allTriggers = [...englishTriggers, ...portugueseTriggers];
 
-    const hasTrigger = allTriggers.some(trigger => content.includes(trigger));
+    const hasTrigger = allTriggers.some((trigger) => content.includes(trigger));
 
     if (hasTrigger && content.length <= maxLength) {
       const videoPath = path.join(__dirname, "../../assets/nky.mp4");
