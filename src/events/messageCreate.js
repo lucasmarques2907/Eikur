@@ -42,6 +42,8 @@ module.exports = {
       "queria morrer",
       "não aguento mais",
       "vou acabar com tudo",
+      "vo acabar com tudo",
+      "eu desisto",
       "vou desistir",
       "matar eu mesmo",
       "morrer logo",
